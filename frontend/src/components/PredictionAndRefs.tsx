@@ -3,6 +3,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { Sparkles, AlertTriangle, ExternalLink, Globe, MapPin, Search } from "lucide-react";
+import { usePrediction } from "@/context/PredictionContext";
 
 const PredictionAndRefs = () => {
   const [prediction, setPrediction] = useState<any>(null);
@@ -12,6 +13,7 @@ const PredictionAndRefs = () => {
   const [error, setError] = useState<string | null>(null);
   const [countryError, setCountryError] = useState<string | null>(null);
   const [countryInput, setCountryInput] = useState("");
+  const { setPrediction: setSharedPrediction } = usePrediction();
 
   const handlePredict = async () => {
     setLoading(true);
@@ -37,6 +39,7 @@ const PredictionAndRefs = () => {
     setCountryLoading(true);
     setCountryError(null);
     setCountryPrediction(null);
+    setSharedPrediction(null);
     
     try {
       const response = await axios.get(`http://127.0.0.1:8000/api/predict/country?country=${encodeURIComponent(countryInput)}`);
@@ -45,8 +48,8 @@ const PredictionAndRefs = () => {
         setCountryError(response.data.error);
       } else {
         setCountryPrediction(response.data);
+        setSharedPrediction(response.data);
         
-        // Zoom to the predicted location on the map
         const map = (window as any).leafletMap;
         if (map && response.data.center_lat && response.data.center_lon) {
           map.flyTo([response.data.center_lat, response.data.center_lon], 7, { duration: 1.5 });

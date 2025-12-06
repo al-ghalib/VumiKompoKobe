@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Baloo_Da_2, Hind_Siliguri } from 'next/font/google';
 import './globals.css';
 import { ThemeContextProvider } from '@/context/ThemeContext';
+import { PredictionProvider } from '@/context/PredictionContext';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const balooDa2 = Baloo_Da_2({ 
@@ -29,7 +30,9 @@ export default function RootLayout({
     <html lang="bn" suppressHydrationWarning className={`${inter.variable} ${balooDa2.variable} ${hindSiliguri.variable}`}>
       <body className="antialiased transition-colors duration-300">
         <ThemeContextProvider>
-          {children}
+          <PredictionProvider>
+            {children}
+          </PredictionProvider>
         </ThemeContextProvider>
       </body>
     </html>

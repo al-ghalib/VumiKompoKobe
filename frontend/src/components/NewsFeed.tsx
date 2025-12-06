@@ -35,7 +35,7 @@ const NewsFeed = () => {
           <Loader2 className="w-6 h-6 animate-spin" />
         </div>
       ) : news.length > 0 ? (
-        news.map((item, index) => (
+        [...news].sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime()).map((item, index) => (
           <a
             key={index}
             href={item.link}

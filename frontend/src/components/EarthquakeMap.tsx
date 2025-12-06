@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import axios from "axios";
 import L from "leaflet";
 import { useTheme } from "@/context/ThemeContext";
+import { usePrediction } from "@/context/PredictionContext";
 import { Search, X } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
@@ -22,6 +23,10 @@ const Marker = dynamic(
 );
 const Popup = dynamic(
   () => import("react-leaflet").then((mod) => mod.Popup),
+  { ssr: false }
+);
+const Circle = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Circle),
   { ssr: false }
 );
 
@@ -44,13 +49,16 @@ const EarthquakeMap = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedQuake, setSelectedQuake] = useState<Earthquake | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const { theme } = useTheme();
+  const { prediction: countryPrediction } = usePrediction();
 
   useEffect(() => {
     const fetchEarthquakes = async () => {
       try {
         const response = await axios.get("http://127.0.0.1:8000/api/earthquakes/recent");
         setEarthquakes(response.data.features);
+        setLastUpdated(new Date());
       } catch (error) {
         console.error("Failed to fetch earthquake data:", error);
       } finally {
@@ -118,6 +126,13 @@ const EarthquakeMap = () => {
 
   return (
     <div className="relative h-full w-full">
+      {lastUpdated && (
+        <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-slate-600 dark:text-gray-400 font-hind">
+            🔄 সর্বশেষ আপডেট: {lastUpdated.toLocaleTimeString("bn-BD", { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+      )}
       <div className="absolute top-4 left-4 right-4 md:left-auto md:right-4 z-[1000] md:w-80">
         <div className="relative">
           <div className="flex items-center bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -174,8 +189,8 @@ const EarthquakeMap = () => {
         ref={(map: any) => { if (map) (window as any).leafletMap = map; }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url={theme === "dark" ? "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png" : "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={theme === "dark" ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"}
         />
         {earthquakes.map((quake) => (
           <Marker
@@ -213,6 +228,56 @@ const EarthquakeMap = () => {
             </Popup>
           </Marker>
         ))}
+
+        {countryPrediction && countryPrediction.center_lat && countryPrediction.center_lon && (
+          <>
+            <Circle
+              center={[countryPrediction.center_lat, countryPrediction.center_lon]}
+              radius={150000}
+              pathOptions={{
+                color: countryPrediction.risk_color === "red" ? "#dc2626" : countryPrediction.risk_color === "orange" ? "#f97316" : "#eab308",
+                fillColor: countryPrediction.risk_color === "red" ? "#dc2626" : countryPrediction.risk_color === "orange" ? "#f97316" : "#eab308",
+                fillOpacity: 0.15,
+                weight: 3,
+                dashArray: "10, 5",
+              }}
+            >
+              <Popup>
+                <div className="p-3 space-y-2 font-hind min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⚠️</span>
+                    <span className="font-bold text-base text-gray-800 dark:text-gray-100">
+                      {countryPrediction.country}
+                    </span>
+                  </div>
+                  <div className={`px-2 py-1 rounded text-sm font-bold text-center ${
+                    countryPrediction.risk_color === "red" ? "bg-red-100 text-red-700" :
+                    countryPrediction.risk_color === "orange" ? "bg-orange-100 text-orange-700" :
+                    "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {countryPrediction.risk_level}
+                  </div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    📍 {countryPrediction.predicted_area}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {countryPrediction.recent_activity}
+                  </p>
+                </div>
+              </Popup>
+            </Circle>
+            <Circle
+              center={[countryPrediction.center_lat, countryPrediction.center_lon]}
+              radius={100000}
+              pathOptions={{
+                color: countryPrediction.risk_color === "red" ? "#dc2626" : countryPrediction.risk_color === "orange" ? "#f97316" : "#eab308",
+                fillColor: countryPrediction.risk_color === "red" ? "#dc2626" : countryPrediction.risk_color === "orange" ? "#f97316" : "#eab308",
+                fillOpacity: 0.25,
+                weight: 2,
+              }}
+            />
+          </>
+        )}
       </MapContainer>
     </div>
   );
