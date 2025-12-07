@@ -9,12 +9,10 @@ import feedparser
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 app = FastAPI(title="ভূমিকম্প কবে? API")
 
-# Get CORS origins from environment variable
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 
 app.add_middleware(

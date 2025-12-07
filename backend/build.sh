@@ -1,6 +1,3 @@
-# Render Build Script
-# This script is executed during the build phase on Render
-
 #!/usr/bin/env bash
 set -o errexit
 
