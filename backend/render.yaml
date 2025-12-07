@@ -14,6 +14,6 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.0"
       - key: CORS_ORIGINS
-        sync: false  # Set this in Render dashboard to your frontend URL
+        value: "https://vumi-kompo-kobe.vercel.app"
       - key: DEBUG
         value: "False"
