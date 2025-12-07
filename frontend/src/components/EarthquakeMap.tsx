@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import axios from "axios";
-import L from "leaflet";
+import type L from "leaflet";
 import { useTheme } from "@/context/ThemeContext";
 import { usePrediction } from "@/context/PredictionContext";
 import { Search, X } from "lucide-react";
@@ -32,12 +32,19 @@ const Circle = dynamic(
   { ssr: false }
 );
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+// Leaflet will be dynamically imported on client-side only
+let leaflet: typeof L | null = null;
+if (typeof window !== "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const L = require("leaflet");
+  leaflet = L;
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  });
+}
 
 interface Earthquake {
   id: string;
@@ -95,6 +102,7 @@ const EarthquakeMap = () => {
   };
 
   const createCustomIcon = (magnitude: number, isSelected: boolean = false) => {
+    if (!leaflet) return undefined;
     const size = isSelected ? Math.max(30, magnitude * 8) : Math.max(20, magnitude * 6);
     const color = magnitude > 6.5 ? "#dc2626" : magnitude > 5.5 ? "#f97316" : magnitude > 4.5 ? "#eab308" : "#3b82f6";
     const svgIcon = `
@@ -104,7 +112,7 @@ const EarthquakeMap = () => {
         ${isSelected ? '<circle cx="12" cy="12" r="10" fill="none" stroke="#fff" stroke-width="2" opacity="0.5"><animate attributeName="r" from="10" to="20" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.5" to="0" dur="1s" repeatCount="indefinite"/></circle>' : ''}
       </svg>
     `;
-    return L.divIcon({
+    return leaflet.divIcon({
       html: svgIcon,
       className: "custom-quake-marker",
       iconSize: [size, size],
