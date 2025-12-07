@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 interface NewsItem {
   title: string;
   link: string;
@@ -17,7 +19,7 @@ const NewsFeed = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/news");
+        const response = await axios.get(`${API_URL}/api/news`);
         setNews(response.data.news || []);
       } catch (error) {
         console.error("Failed to fetch news:", error);

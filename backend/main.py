@@ -6,12 +6,20 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, timezone
 import feedparser
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(title="ভূমিকম্প কবে? API")
 
+# Get CORS origins from environment variable
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -207,4 +215,7 @@ def get_earthquake_news():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "8000"))
+    debug = os.getenv("DEBUG", "True").lower() == "true"
+    uvicorn.run("main:app", host=host, port=port, reload=debug)

@@ -5,6 +5,8 @@ import axios from "axios";
 import { Sparkles, AlertTriangle, ExternalLink, Globe, MapPin, Search } from "lucide-react";
 import { usePrediction } from "@/context/PredictionContext";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 const PredictionAndRefs = () => {
   const [prediction, setPrediction] = useState<any>(null);
   const [countryPrediction, setCountryPrediction] = useState<any>(null);
@@ -20,7 +22,7 @@ const PredictionAndRefs = () => {
     setError(null);
     setPrediction(null);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/predict");
+      const response = await axios.get(`${API_URL}/api/predict`);
       setPrediction(response.data);
     } catch (err) {
       setError("পূর্বাভাস আনতে সমস্যা হয়েছে। ব্যাকএন্ড চলছে কিনা দেখুন।");
@@ -42,7 +44,7 @@ const PredictionAndRefs = () => {
     setSharedPrediction(null);
     
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/predict/country?country=${encodeURIComponent(countryInput)}`);
+      const response = await axios.get(`${API_URL}/api/predict/country?country=${encodeURIComponent(countryInput)}`);
       
       if (response.data.error) {
         setCountryError(response.data.error);

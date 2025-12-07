@@ -9,6 +9,8 @@ import { usePrediction } from "@/context/PredictionContext";
 import { Search, X } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
@@ -56,7 +58,7 @@ const EarthquakeMap = () => {
   useEffect(() => {
     const fetchEarthquakes = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/earthquakes/recent");
+        const response = await axios.get(`${API_URL}/api/earthquakes/recent`);
         setEarthquakes(response.data.features);
         setLastUpdated(new Date());
       } catch (error) {
