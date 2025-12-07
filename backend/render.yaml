@@ -7,6 +7,7 @@ services:
     runtime: python
     region: singapore  # Closest to Bangladesh
     plan: free
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
